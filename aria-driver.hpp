@@ -3,9 +3,9 @@
 
 #ifndef isnan
 #if __cplusplus <= 199711L  // c++98 or older
-  #define isnan(x) ::isnan(x)
+#define isnan(x) ::isnan(x)
 #else
-  #define isnan(x) std::isnan(x)
+#define isnan(x) std::isnan(x)
 #endif
 #endif
 
@@ -76,7 +76,7 @@ class AriaDriver : public RobotDriver {
     robot.unlock();
   }
 
-  void set_power_info(PowerInfo const& power_info) { this->power_info = power_info; }
+  void set_power_info(PowerInfo const& power_info) override { this->power_info = power_info; }
 
   Speed get_speed() override {
     Speed speed;
