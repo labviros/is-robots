@@ -2,7 +2,7 @@
 
 #include <is/msgs/common.pb.h>
 #include <is/msgs/robot.pb.h>
-#include "power.pb.h"
+#include <is/msgs/power.pb.h>
 
 using namespace is;
 using namespace is::robot;
@@ -14,7 +14,7 @@ int main(int, char**) {
   auto tag = is::declare_queue(channel);
 
   RobotConfig config;
-  config.mutable_speed()->set_linear(100.0);
+  config.mutable_speed()->set_linear(0.1);
   config.mutable_speed()->set_angular(5.0 * std::asin(1) / 90.0);
   config.PrintDebugString();
   

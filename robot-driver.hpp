@@ -4,7 +4,7 @@
 #include <google/protobuf/util/time_util.h>
 #include <is/msgs/common.pb.h>
 #include <is/msgs/robot.pb.h>
-#include "power.pb.h"
+#include <is/msgs/power.pb.h>
 
 namespace is {
 namespace robot {

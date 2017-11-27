@@ -22,10 +22,10 @@ all: $(SERVICE) test
 clean:
 	rm -f *.o *.pb.cc *.pb.h $(SERVICE) test
 
-$(SERVICE): power.pb.o $(SERVICE).o
+$(SERVICE): $(SERVICE).o
 	$(CXX) $^ $(LDFLAGS) $(BUILDFLAGS) -o $@
 
-test: power.pb.o  test.o
+test: test.o
 	$(CXX) $^ $(LDFLAGS) $(BUILDFLAGS) -o $@
 
 .PRECIOUS: %.pb.cc

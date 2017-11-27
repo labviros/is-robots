@@ -41,13 +41,13 @@ struct RobotGateway {
     is::ServiceProvider provider;
 
     provider.connect(channel);
-    auto queue = provider.make_queue("RobotGateway", std::to_string(id));
+    auto queue = provider.declare_queue("RobotGateway", std::to_string(id));
 
-    provider.delegate<pb::Empty, RobotConfig>(
+    provider.delegate<RobotConfig, pb::Empty>(
         queue, "SetConfig", [this](RobotConfig const& config, pb::Empty*) -> Status {
           return this->set_configuration(config);
         });
-    provider.delegate<RobotConfig, pb::Empty>(
+    provider.delegate<pb::Empty, RobotConfig>(
         queue, "GetConfig", [this](pb::Empty const&, RobotConfig* config) -> Status {
           return this->get_configuration(config);
         });

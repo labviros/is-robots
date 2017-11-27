@@ -11,7 +11,6 @@
 
 #include <Aria/Aria.h>
 #include <string>
-#include "power.pb.h"
 #include "robot-driver.hpp"
 
 namespace is {
@@ -63,13 +62,13 @@ class AriaDriver : public RobotDriver {
 
   void set_speed(Speed const& speed) override {
     robot.lock();
-    robot.setVel(speed.linear());
+    robot.setVel(1000.0*speed.linear());
     robot.setRotVel(speed.angular() * 90.0 / std::asin(1));
     robot.unlock();
   }
 
   void set_pose(Pose const& pose) override {
-    ArPose ar_pose(pose.position().x(), pose.position().y(),
+    ArPose ar_pose(1000.0*pose.position().x(), 1000.0*pose.position().y(),
                    pose.orientation().roll() * 90.0 / std::asin(1));
     robot.lock();
     robot.moveTo(ar_pose);
@@ -81,7 +80,7 @@ class AriaDriver : public RobotDriver {
   Speed get_speed() override {
     Speed speed;
     robot.lock();
-    speed.set_linear(robot.getVel());
+    speed.set_linear(robot.getVel() / 1000.0);
     speed.set_angular(robot.getRotVel() * std::asin(1) / 90.0);
     robot.unlock();
     return speed;
@@ -90,8 +89,8 @@ class AriaDriver : public RobotDriver {
   Pose get_pose() override {
     Pose pose;
     robot.lock();
-    pose.mutable_position()->set_x(robot.getX());
-    pose.mutable_position()->set_y(robot.getY());
+    pose.mutable_position()->set_x(robot.getX() / 1000.0);
+    pose.mutable_position()->set_y(robot.getY() / 1000.0);
     pose.mutable_orientation()->set_roll(robot.getTh() * std::asin(1) / 90.0);
     robot.unlock();
     return pose;
