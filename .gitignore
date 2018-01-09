@@ -1,3 +1,5 @@
 robot-gateway
 test
 *.o
+deploy/*
+.vscode/

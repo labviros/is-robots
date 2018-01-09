@@ -1,47 +1,46 @@
-CXX = clang++
-CXXFLAGS += -std=c++11 -Wall -Werror
-DEBUGFLAGS = -g -fsanitize=address -fno-omit-frame-pointer
-RELEASEFLAGS = -O3
-BUILDFLAGS = $(RELEASEFLAGS)
-LDFLAGS += -L/usr/local/lib -I/usr/local/include \
-			`pkg-config --libs protobuf librabbitmq libSimpleAmqpClient`\
-			-ldl -lpthread -lAria -lm -lrt -lboost_system -lboost_filesystem -lboost_program_options -lismsgs\
-			-Wl,--no-as-needed -Wl,--as-needed
+CXXFLAGS += -std=c++11 -Wall -Werror -O2
+LDFLAGS+= -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include \
+			-lprotobuf -lrabbitmq -lSimpleAmqpClient \
+			-lboost_system -lboost_filesystem -lboost_program_options -lboost_chrono \
+			-ldl -lpthread -lAria -lm -lrt -lismsgs \
+			-lprometheus-cpp  -lopentracing -lzipkin -lzipkin_opentracing -lcurl
 PROTOC = protoc
+
+CROSS_IMAGE = git.is:5000/is-cpp:1-aria
+SERVICE = robot-gateway
+RPI_IP = 10.61.0.26
 
 LOCAL_PROTOS_PATH = ./msgs/
 vpath %.proto $(LOCAL_PROTOS_PATH)
 
-MAINTAINER = mendonca
-SERVICE = robot-gateway
-VERSION = 1
-LOCAL_REGISTRY = git.is:5000
-
-all: $(SERVICE) test
+all: cross
 
 clean:
 	rm -f *.o *.pb.cc *.pb.h $(SERVICE) test
+	rm -rf deploy
+
+cross:
+	docker run -ti -v `pwd`:/opt -w /opt $(CROSS_IMAGE) make build
+
+build: $(SERVICE) test
+	rm -rf deploy/*
+	mkdir -p deploy
+	./arm-ldd $(SERVICE) deploy/
+	mv $(SERVICE) deploy/
+	mv test deploy/
+
+# run: cross
+# 	docker run -ti --network=host -v `pwd`:/opt -w /opt $(CROSS_IMAGE) qemu-arm deploy/$(SERVICE) $(args)
+
+deploy: cross
+	scp -r deploy pi@$(RPI_IP):gw
 
 $(SERVICE): $(SERVICE).o
-	$(CXX) $^ $(LDFLAGS) $(BUILDFLAGS) -o $@
+	$(CXX) $^ $(LDFLAGS) -o $@
 
 test: test.o
-	$(CXX) $^ $(LDFLAGS) $(BUILDFLAGS) -o $@
+	$(CXX) $^ $(LDFLAGS) -o $@
 
 .PRECIOUS: %.pb.cc
 %.pb.cc: %.proto
 	$(PROTOC) -I $(LOCAL_PROTOS_PATH) --cpp_out=. $<
-
-docker:
-	rm -rf libs/
-	mkdir libs/
-	lddcp $(SERVICE) libs/
-	docker build -t $(MAINTAINER)/$(SERVICE):$(VERSION) .
-	rm -rf libs/
-
-push_local: docker
-	docker tag $(MAINTAINER)/$(SERVICE):$(VERSION) $(LOCAL_REGISTRY)/$(SERVICE):$(VERSION)
-	docker push $(LOCAL_REGISTRY)/$(SERVICE):$(VERSION)
-
-push_cloud: docker
-	docker push $(MAINTAINER)/$(SERVICE):$(VERSION)
