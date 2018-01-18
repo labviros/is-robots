@@ -2,6 +2,8 @@
 #include <boost/filesystem.hpp>
 #include <string>
 #include "aria-driver.hpp"
+#include <sched.h>
+#include <sys/mman.h>
 
 namespace fs = boost::filesystem;
 using namespace is::robot;
@@ -20,6 +22,14 @@ int main(int argc, char** argv) {
   std::string serial_port;
   std::string power_info_file;
   unsigned int id;
+  
+  sched_param sp;
+  sp.sched_priority = 50;
+  is::info("Using sched priority {}", sp.sched_priority);
+  if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp))
+    is::warn("Failed to set thread priority");
+  if (mlockall(MCL_FUTURE | MCL_CURRENT))
+    is::warn("Failed to lock memory");
 
   is::po::options_description opts("Options");
   auto&& opt_add = opts.add_options();

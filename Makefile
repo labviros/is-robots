@@ -8,7 +8,7 @@ PROTOC = protoc
 
 CROSS_IMAGE = git.is:5000/is-cpp:1-aria
 SERVICE = robot-gateway
-RPI_IP = 10.61.0.26
+RPI_IP = raspberrypi.local
 
 LOCAL_PROTOS_PATH = ./msgs/
 vpath %.proto $(LOCAL_PROTOS_PATH)
@@ -22,18 +22,20 @@ clean:
 cross:
 	docker run -ti -v `pwd`:/opt -w /opt $(CROSS_IMAGE) make build
 
-build: $(SERVICE) test
+build: $(SERVICE)
 	rm -rf deploy/*
 	mkdir -p deploy
 	./arm-ldd $(SERVICE) deploy/
 	mv $(SERVICE) deploy/
-	mv test deploy/
 
 # run: cross
 # 	docker run -ti --network=host -v `pwd`:/opt -w /opt $(CROSS_IMAGE) qemu-arm deploy/$(SERVICE) $(args)
 
 deploy: cross
 	scp -r deploy pi@$(RPI_IP):gw
+
+deploy_bin: cross
+	scp deploy/robot-gateway pi@$(RPI_IP):gw/
 
 $(SERVICE): $(SERVICE).o
 	$(CXX) $^ $(LDFLAGS) -o $@

@@ -38,8 +38,10 @@ struct RobotGateway {
   void run(std::string const& uri, unsigned int const& id, is::Tracer tracer) {
     is::info("Trying to connect to {}", uri);
     auto channel = rmq::Channel::CreateFromUri(uri);
+    is::info("Connected to broker.");
     is::ServiceProvider provider;
     is::RPCTraceInterceptor interceptor(provider, tracer);
+    is::RPCLogInterceptor log_interceptor(provider);
 
     provider.connect(channel);
     auto queue = provider.declare_queue("RobotGateway", std::to_string(id));
@@ -55,21 +57,16 @@ struct RobotGateway {
 
     driver->start();
     auto period = driver->get_sampling_period();
-    auto now = is::current_time();
+    auto now = is::current_time() + period;
     for (;;) {
-      auto pose = driver->get_pose();
-      is::publish(channel, fmt::format("RobotGateway.{}.Pose", id), pose);
-
-      now = now + period;
-      auto deadline = now - is::pb::TimeUtil::MillisecondsToDuration(1);     
-      for (;;) {
-        auto envelope = is::consume_until(channel, deadline);
-        if (envelope != nullptr)
-          provider.serve(envelope);
-        else
-          break;
+      auto envelope = is::consume_until(channel, now);
+      if (envelope != nullptr)
+        provider.serve(envelope);
+      else {
+        auto pose = driver->get_pose();
+        is::publish(channel, fmt::format("RobotGateway.{}.Pose", id), pose);
+        now = now + period;
       }
-      wait(now - is::current_time());
     }
   }
 
