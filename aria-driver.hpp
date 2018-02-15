@@ -19,7 +19,7 @@ namespace robot {
 namespace pb {
 using namespace google::protobuf::util;
 using namespace google::protobuf;
-}
+}  // namespace pb
 
 using namespace is::common;
 using namespace is::robot;
@@ -62,13 +62,13 @@ class AriaDriver : public RobotDriver {
 
   void set_speed(Speed const& speed) override {
     robot.lock();
-    robot.setVel(1000.0*speed.linear());
+    robot.setVel(1000.0 * speed.linear());
     robot.setRotVel(speed.angular() * 90.0 / std::asin(1));
     robot.unlock();
   }
 
   void set_pose(Pose const& pose) override {
-    ArPose ar_pose(1000.0*pose.position().x(), 1000.0*pose.position().y(),
+    ArPose ar_pose(1000.0 * pose.position().x(), 1000.0 * pose.position().y(),
                    pose.orientation().roll() * 90.0 / std::asin(1));
     robot.lock();
     robot.moveTo(ar_pose);
@@ -118,7 +118,12 @@ class AriaDriver : public RobotDriver {
     robot.unlock();
   }
 
+  void set_sampling_period(pb::Duration const& period) override { sampling_period = period; };
+  pb::Duration get_sampling_period() override { return sampling_period; };
+
  private:
+  pb::Duration sampling_period;
+
   template <typename Connection>
   void set_connection(Connection* c) {
     Aria::init();

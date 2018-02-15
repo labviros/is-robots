@@ -1,6 +1,6 @@
 MAINTAINER = viros
 VERSION = 1-aria
-LOCAL_REGISTRY = git.is:5000
+LOCAL_REGISTRY = ninja.local:5000
 
 all: docker
 
