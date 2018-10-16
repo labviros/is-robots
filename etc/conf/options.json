@@ -1,0 +1,9 @@
+{
+    "broker_uri": "amqp://192.168.0.1",
+    "zipkin_uri": "http://192.168.0.1",
+    "robot_parameters": {
+        "id": 0,
+        "robot_uri": "tcp://1.1.1.1:33",
+        "speed_hold_limit": "0.5s"
+    }
+}

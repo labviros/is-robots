@@ -1,2 +1,2 @@
-*.o
-robot-gateway
+build/
+.vscode

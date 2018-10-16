@@ -1,5 +1,2 @@
-robot-gateway
-test
-*.o
-deploy/*
-.vscode/
+build
+.vscode
