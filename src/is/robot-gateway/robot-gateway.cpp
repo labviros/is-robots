@@ -11,6 +11,7 @@ RobotGateway::RobotGateway(RobotDriver* d, RobotParameters const& p)
 auto RobotGateway::get_configuration() -> expected<robot::RobotConfig, std::exception> {
   auto config = robot::RobotConfig{};
   *config.mutable_speed() = *(driver->get_speed());
+  return config;
 }
 
 auto RobotGateway::set_configuration(robot::RobotConfig const& config)
@@ -31,7 +32,7 @@ void RobotGateway::enforce_safety() {
   }
 }
 
-std::chrono::system_clock::time_point RobotGateway::next_deadline() const {
+auto RobotGateway::next_deadline() const -> std::chrono::system_clock::time_point {
   return last_speed_command + is::to_nanoseconds(params.speed_hold_limit());
 }
 

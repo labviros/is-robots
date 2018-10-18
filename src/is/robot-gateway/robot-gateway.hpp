@@ -22,7 +22,7 @@ class RobotGateway {
   auto set_configuration(robot::RobotConfig const&) -> expected<void, std::exception>;
 
   void enforce_safety();
-  std::chrono::system_clock::time_point next_deadline() const;
+  auto next_deadline() const -> std::chrono::system_clock::time_point;
 };
 
 }  // namespace is

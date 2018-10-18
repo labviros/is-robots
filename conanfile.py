@@ -30,7 +30,19 @@ class IsRobotsServiceConan(ConanFile):
             self.build_requires("gtest/1.8.0@bincrafters/stable")
 
     def configure(self):
-        self.options["is-msgs"].shared = True
+        self.options["is-msgs"].shared = False
+        self.options["is-wire"].shared = False
+        self.options["aria"].shared = False
+        self.options["boost"].shared = False
+        self.options["protobuf"].shared = False
+        self.options["SimpleAmqpClient"].shared = False
+        self.options["rabbitmq-c"].shared = False
+        self.options["opentracing-cpp"].shared = False
+        self.options["prometheus-cpp"].shared = False
+        self.options["fmt"].shared = False
+        self.options["curl"].shared = False
+        self.options["zlib"].shared = False
+        self.options["zipkin-cpp-opentracing"].shared = False
 
     def build(self):
         cmake = CMake(self, generator='Ninja')

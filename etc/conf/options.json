@@ -3,7 +3,7 @@
     "zipkin_uri": "http://192.168.1.105:30200",
     "robot_parameters": {
         "id": 0,
-        "robot_uri": "tcp://ttyUSB0",
+        "robot_uri": "serial://ttyUSB0",
         "speed_hold_limit": "0.5s"
     }
 }

@@ -1,4 +1,4 @@
-FROM conanio/gcc5-armv7hf as build
+FROM conanio/gcc7-armv7hf as build
 
 # Install build dependencies
 ADD bootstrap.sh .
