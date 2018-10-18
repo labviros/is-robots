@@ -8,6 +8,9 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory("./src/is/robot-drivers")

@@ -19,14 +19,14 @@ auto load_configuration(int argc, char** argv) -> is::RobotGatewayOptions {
 
 int main(int argc, char** argv) {
   auto options = load_configuration(argc, argv);
-  auto service = fmt::format("Camera.Gateway.{}", options.robot_parameters().id());
+  auto service = fmt::format("RobotGateway.{}", options.robot_parameters().id());
 
   auto driver = is::AriaDriver{options.robot_parameters().robot_uri()};
-  auto gateway = is::RobotGateway{&driver};
+  auto gateway = is::RobotGateway{&driver, options.robot_parameters()};
+  is::info("event=RobotInitDone");
 
   auto channel = is::Channel{options.broker_uri()};
-
-  auto subscription = is::Subscription{channel};
+  is::info("event=ChannelInitDone");
 
   auto server = is::ServiceProvider{channel};
   auto logs = is::LogInterceptor{};
@@ -43,10 +43,10 @@ int main(int argc, char** argv) {
         return is::make_status();
       });
 
-  auto hold_limit = is::to_nanoseconds(options.robot_parameters().speed_hold_limit());
+  is::info("event=InitAllDone");
   for (;;) {
-    auto message = channel.consume();
-    server.serve(message);
-    gateway.enforce_safety(hold_limit);
+    auto message = channel.consume_until(gateway.next_deadline());
+    if (message) { server.serve(*message); }
+    gateway.enforce_safety();
   }
 }

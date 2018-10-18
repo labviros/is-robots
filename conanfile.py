@@ -42,5 +42,5 @@ class IsRobotsServiceConan(ConanFile):
         # if self.options.build_tests:
         #     cmake.test()
 
-    def package_info(self):
-        pass
+    def imports(self):
+        self.copy("*.so*", dst="libs", src="lib", keep_path=True)
