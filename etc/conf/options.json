@@ -4,6 +4,7 @@
     "robot_parameters": {
         "id": 0,
         "robot_uri": "serial://ttyUSB0",
-        "speed_hold_limit": "0.5s"
+        "speed_hold_limit": "0.5s",
+        "sampling_rate": "10.0"
     }
 }

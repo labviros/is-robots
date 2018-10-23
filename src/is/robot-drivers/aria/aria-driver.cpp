@@ -31,7 +31,14 @@ AriaDriver::AriaDriver(std::string const& uri) {
   }
 
   robot.runAsync(/*exit_on_error=*/true);
+  robot.addRangeDevice(&sonar);
   robot.enableMotors();
+  robot.enableSonar();
+}
+
+AriaDriver::~AriaDriver() {
+  robot.stopRunning();
+  robot.waitForRunExit();
 }
 
 auto AriaDriver::stop() -> expected<void, std::exception> {
@@ -63,6 +70,32 @@ auto AriaDriver::get_pose() -> expected<common::Pose, std::exception> {
   pose.mutable_orientation()->set_roll(robot.getTh() * std::asin(1) / 90.0);
   robot.unlock();
   return pose;
+}
+
+auto AriaDriver::get_sonar_scan() -> expected<robot::RangeScan, std::exception> {
+  auto scan = robot::RangeScan{};
+  auto ranges = scan.mutable_ranges();
+  auto angles = scan.mutable_angles();
+
+  sonar.lockDevice();
+  for (int i = 0; i < robot.getNumSonar(); ++i) {
+    auto reading = robot.getSonarReading(i);
+
+    if (reading != nullptr) {
+      auto const degrees_to_radians = std::asin(1) / 90.0;
+      auto reading_angle = reading->getSensorTh() * degrees_to_radians;
+      // compute distance to the robot center
+      auto x = reading->getSensorX() + reading->getRange() * std::cos(reading_angle);
+      auto y = reading->getSensorY() + reading->getRange() * std::sin(reading_angle);
+      auto distance = std::sqrt(x * x + y * y) / 1000.0;
+      auto angle = std::atan2(y, x);
+
+      *ranges->Add() = distance;
+      *angles->Add() = angle;
+    }
+  }
+  sonar.unlockDevice();
+  return scan;
 }
 
 }  // namespace is

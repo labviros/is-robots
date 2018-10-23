@@ -34,13 +34,14 @@ int main(int argc, char** argv) {
   auto service = fmt::format("RobotGateway.{}", options.robot_parameters().id());
 
   auto driver = is::AriaDriver{options.robot_parameters().robot_uri()};
-  auto gateway = is::RobotGateway{&driver, options.robot_parameters()};
   is::info("event=RobotInitDone");
 
   auto channel = is::Channel{options.broker_uri()};
   auto tracer = create_tracer(service, options.zipkin_uri());
   channel.set_tracer(tracer);
   is::info("event=ChannelInitDone");
+
+  auto gateway = is::RobotGateway{channel, &driver, options.robot_parameters()};
 
   auto server = is::ServiceProvider{channel};
   auto logs = is::LogInterceptor{};
@@ -61,6 +62,6 @@ int main(int argc, char** argv) {
   for (;;) {
     auto message = channel.consume_until(gateway.next_deadline());
     if (message) { server.serve(*message); }
-    gateway.enforce_safety();
+    gateway.run();
   }
 }

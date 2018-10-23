@@ -25,15 +25,19 @@ namespace is {
 
 class AriaDriver : public RobotDriver {
   ArRobot robot;
+  ArSonarDevice sonar;
+  ArSick laser;
 
  public:
   AriaDriver(std::string const& uri);
+  virtual ~AriaDriver();
 
   auto stop() -> expected<void, std::exception> override;
   auto get_speed() -> expected<common::Speed, std::exception> override;
   auto set_speed(common::Speed const&) -> expected<void, std::exception> override;
 
   auto get_pose() -> expected<common::Pose, std::exception> override;
+  auto get_sonar_scan() -> expected<robot::RangeScan, std::exception> override;
 };
 
 }  // namespace is

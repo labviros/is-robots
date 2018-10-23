@@ -16,7 +16,7 @@ class IsRobotsServiceConan(ConanFile):
     default_options = "shared=False", "fPIC=True", "build_tests=False"
     generators = "cmake", "cmake_find_package", "cmake_paths", "virtualrunenv"
     requires = (
-        "is-msgs/1.1.8@is/stable",
+        "is-msgs/1.1.9@is/stable",
         "is-wire/1.1.4@is/stable",
         "aria/2.9.4@is/stable",
         "expected/0.3.0@is/stable",
