@@ -6,16 +6,21 @@ import "google/protobuf/duration.proto";
 package is;
 
 message RobotParameters {
+    // ID of the robot gateway.
     int64 id = 1;
+    // URI to connect to the robot e.g: serial://ttyUSB0 
     string robot_uri = 2;
-    // Maximum duration that a speed command can be executed 
+    // Maximum duration that a speed command can be executed.
     google.protobuf.Duration speed_hold_limit = 3;
-    // Sensors sampling rate
+    // Sampling rate of the sensors.
     float sampling_rate = 4 [(validate.rules).float = {gt: 0.1}];
 }
 
 message RobotGatewayOptions {
+    // URI of the amqp broker.
     string broker_uri = 1;
+    // URI of the zipkin server.
     string zipkin_uri = 2;
+    //
     RobotParameters robot_parameters = 3;
 }
