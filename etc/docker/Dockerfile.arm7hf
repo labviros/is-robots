@@ -1,0 +1,14 @@
+FROM labviros/is-wire-base:1.1.4-gcc7-arm7hf as build
+
+# Build the target
+ADD --chown=conan:sudo . /home/conan/project
+
+RUN cd ~/project                            \
+ # make sure that the directory exists so the copy does not fail on static builds
+ && mkdir -p /home/conan/project/build/libs \ 
+ && ./build.sh                                                          
+ 
+FROM arm32v7/ubuntu
+ENV LD_LIBRARY_PATH=/service/libs
+COPY --from=build /home/conan/project/build/libs /service/libs
+COPY --from=build /home/conan/project/build/bin /service/bin
