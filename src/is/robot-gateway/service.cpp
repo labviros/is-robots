@@ -5,6 +5,7 @@
 #include <is/wire/core.hpp>
 #include <is/wire/rpc.hpp>
 #include <is/wire/rpc/log-interceptor.hpp>
+#include "SimpleAmqpClient/AmqpLibraryException.h"
 #include "conf/options.pb.h"
 #include "is/robot-drivers/aria/aria-driver.hpp"
 #include "robot-gateway.hpp"
@@ -32,36 +33,46 @@ auto create_tracer(std::string const& name, std::string const& uri)
 int main(int argc, char** argv) {
   auto options = load_configuration(argc, argv);
   auto service = fmt::format("RobotGateway.{}", options.robot_parameters().id());
-
-  auto channel = is::Channel{options.broker_uri()};
   auto tracer = create_tracer(service, options.zipkin_uri());
-  channel.set_tracer(tracer);
-  is::info("event=ChannelInitDone");
-
   auto driver = is::AriaDriver{options.robot_parameters().robot_uri()};
   is::info("event=RobotInitDone");
 
-  auto gateway = is::RobotGateway{channel, &driver, options.robot_parameters()};
-
-  auto server = is::ServiceProvider{channel};
-  auto logs = is::LogInterceptor{};
-  server.add_interceptor(logs);
-  server.delegate<is::robot::RobotConfig, google::protobuf::Empty>(
-      service + ".SetConfig", [&](auto* ctx, auto const& config, auto*) {
-        gateway.set_configuration(config);
-        return is::make_status();
-      });
-
-  server.delegate<google::protobuf::Empty, is::robot::RobotConfig>(
-      service + ".GetConfig", [&](auto* ctx, auto const&, auto* config) {
-        *config = *gateway.get_configuration();
-        return is::make_status();
-      });
-
-  is::info("event=InitAllDone");
   for (;;) {
-    auto message = channel.consume_until(gateway.next_deadline());
-    if (message) { server.serve(*message); }
-    gateway.run();
+    try {
+      is::info("event=BrokerConnectionAttempt");
+      auto channel = is::Channel{options.broker_uri()};
+      channel.set_tracer(tracer);
+      is::info("event=ChannelInitDone");
+
+      auto gateway = is::RobotGateway{channel, &driver, options.robot_parameters()};
+      auto server = is::ServiceProvider{channel};
+      auto logs = is::LogInterceptor{};
+      server.add_interceptor(logs);
+
+      server.delegate<is::robot::RobotConfig, google::protobuf::Empty>(
+          service + ".SetConfig", [&](auto* ctx, auto const& config, auto*) {
+            gateway.set_configuration(config);
+            return is::make_status();
+          });
+
+      server.delegate<google::protobuf::Empty, is::robot::RobotConfig>(
+          service + ".GetConfig", [&](auto* ctx, auto const&, auto* config) {
+            *config = *gateway.get_configuration();
+            return is::make_status();
+          });
+
+      is::info("event=InitAllDone");
+      for (;;) {
+        auto message = channel.consume_until(gateway.next_deadline());
+        if (message) { server.serve(*message); }
+        is::info("-");
+        gateway.run();
+      }
+
+    } catch (AmqpClient::AmqpLibraryException const& e) {
+      is::error("event=AmqpException why={}", e.what());
+    } catch (std::exception const& e) {
+      is::error("event=std::exception why={}", e.what());
+    } catch (...) { is::error("event=UnknownException"); }
   }
 }
